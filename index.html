@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Will You Be My Valentine?</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --bg-gradient: radial-gradient(circle, #ffdee9 0%, #b5fffc 100%);
+            --card-bg: rgba(255, 255, 255, 0.85);
+            --accent-color: #d63384;
+            --btn-pink: #ff4d6d;
+            --btn-pink-hover: #ff758f;
+        }
+
+        /* Screen 2 Theme (Night Romance) */
+        body.theme-success {
+            --bg-gradient: radial-gradient(circle, #2d0b36 0%, #000000 100%);
+            --card-bg: rgba(45, 11, 54, 0.6);
+            --accent-color: #ff4d6d;
+        }
+
+        body {
+            background: var(--bg-gradient);
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            transition: background 1.5s ease;
+        }
+
+        .container {
+            text-align: center;
+            background: var(--card-bg);
+            padding: 3rem;
+            border-radius: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(15px);
+            z-index: 10;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            max-width: 90%;
+            position: relative;
+            transition: all 1s ease;
+        }
+
+        h1 {
+            color: var(--accent-color);
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .btn {
+            padding: 0.8rem 2.5rem;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-radius: 9999px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            border: none;
+            outline: none;
+            display: inline-block;
+            min-width: 100px;
+            color: white;
+            background-color: var(--btn-pink);
+            box-shadow: 0 4px 15px rgba(255, 77, 109, 0.4);
+        }
+
+        .btn:hover {
+            transform: scale(1.1);
+            background-color: var(--btn-pink-hover);
+        }
+
+        #noBtn {
+            position: relative;
+            z-index: 100;
+            transition: left 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), 
+                        top 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+                        transform 0.2s ease;
+        }
+
+        /* Class added once the button starts dodging */
+        #noBtn.dodging {
+            position: fixed;
+            margin: 0;
+        }
+
+        /* We use a placeholder to prevent the Yes button from shifting */
+        .btn-placeholder {
+            width: 154px; /* Width of the No button to maintain layout */
+            height: 48px;
+            display: none;
+        }
+
+        #noBtn.dodging + .btn-placeholder {
+            display: inline-block;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .heart {
+            position: absolute;
+            color: #ff4d6d;
+            opacity: 0.6;
+            animation: float 6s linear infinite;
+            pointer-events: none;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(110vh) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(-20vh) rotate(360deg); opacity: 0; }
+        }
+
+        #successMessage {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            animation: fadeIn 1s forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 40px; 
+            min-height: 80px;
+        }
+
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            opacity: 0;
+            animation: twinkle var(--duration) ease-in-out infinite;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.2; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+    </style>
+</head>
+<body id="body">
+
+    <div class="container" id="mainCard">
+        <div id="proposalContent">
+            <div id="heartIcon" class="mb-4 text-6xl">💝</div>
+            <h1 id="mainTitle">Will you be my Valentine?</h1>
+            <div class="controls">
+                <button id="yesBtn" class="btn">Yes</button>
+                <button id="noBtn" class="btn">No</button>
+                <div class="btn-placeholder"></div>
+            </div>
+        </div>
+
+        <div id="successMessage">
+            <div class="text-7xl mb-4">🥰🎉</div>
+            <h1 class="text-3xl font-bold text-white">I knew you'd say Yes!</h1>
+            <p class="text-pink-200 mt-2 text-xl">You've made me the happiest person ever.</p>
+            
+            <button onclick="location.reload()" class="mt-8 text-sm text-pink-300 underline opacity-50">Start Over</button>
+        </div>
+    </div>
+
+    <script>
+        const noBtn = document.getElementById('noBtn');
+        const yesBtn = document.getElementById('yesBtn');
+        const proposalContent = document.getElementById('proposalContent');
+        const successMessage = document.getElementById('successMessage');
+        const mainTitle = document.getElementById('mainTitle');
+        const body = document.getElementById('body');
+
+        let isSuccess = false;
+        let hasStartedDodging = false;
+
+        function handleConfig() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const name = urlParams.get('n');
+            if (name && name.trim() !== "") {
+                mainTitle.textContent = `Hey ${name.trim()}, will you be my Valentine?`;
+            }
+        }
+
+        function moveButton(e) {
+            if (isSuccess) return;
+
+            if (!hasStartedDodging) {
+                const rect = noBtn.getBoundingClientRect();
+                // Set the current fixed position before switching classes
+                noBtn.style.left = `${rect.left}px`;
+                noBtn.style.top = `${rect.top}px`;
+                noBtn.classList.add('dodging');
+                hasStartedDodging = true;
+                
+                // Jump to a new random location immediately after fixing position
+                setTimeout(() => performJump(), 10);
+            } else {
+                performJump();
+            }
+        }
+
+        function performJump() {
+            const btnRect = noBtn.getBoundingClientRect();
+            const btnWidth = btnRect.width;
+            const btnHeight = btnRect.height;
+            const threshold = 120;
+            
+            const screenW = window.innerWidth;
+            const screenH = window.innerHeight;
+
+            const currX = btnRect.left;
+            const currY = btnRect.top;
+
+            let targetX, targetY;
+
+            // Horizontal logic - avoid edges
+            if (currX < threshold) {
+                targetX = (screenW * 0.5) + Math.random() * (screenW * 0.4);
+            } else if (currX > (screenW - btnWidth - threshold)) {
+                targetX = (screenW * 0.1) + Math.random() * (screenW * 0.4);
+            } else {
+                targetX = 50 + Math.random() * (screenW - btnWidth - 100);
+            }
+
+            // Vertical logic - avoid edges
+            if (currY < threshold) {
+                targetY = (screenH * 0.5) + Math.random() * (screenH * 0.4);
+            } else if (currY > (screenH - btnHeight - threshold)) {
+                targetY = (screenH * 0.1) + Math.random() * (screenH * 0.4);
+            } else {
+                targetY = 50 + Math.random() * (screenH - btnHeight - 100);
+            }
+
+            noBtn.style.left = `${targetX}px`;
+            noBtn.style.top = `${targetY}px`;
+        }
+
+        noBtn.addEventListener('mouseenter', moveButton);
+        noBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            moveButton();
+        });
+
+        yesBtn.addEventListener('click', () => {
+            if (isSuccess) return;
+            isSuccess = true;
+            
+            body.classList.add('theme-success');
+            proposalContent.style.display = 'none';
+            successMessage.style.display = 'flex';
+            noBtn.style.display = 'none';
+            
+            createStars();
+            for(let i=0; i<80; i++) {
+                setTimeout(createHeart, i * 50);
+            }
+        });
+
+        function createHeart() {
+            const heart = document.createElement('div');
+            heart.classList.add('heart');
+            heart.innerHTML = isSuccess ? (Math.random() > 0.5 ? '💖' : '✨') : '❤️';
+            heart.style.left = Math.random() * 100 + 'vw';
+            heart.style.fontSize = (Math.random() * 20 + 10) + 'px';
+            heart.style.animationDuration = (Math.random() * 3 + 3) + 's';
+            if (isSuccess) {
+                heart.style.color = '#ff85a1';
+                heart.style.filter = 'drop-shadow(0 0 5px #ff4d6d)';
+            }
+            document.body.appendChild(heart);
+            setTimeout(() => heart.remove(), 6000);
+        }
+
+        function createStars() {
+            for(let i=0; i<100; i++) {
+                const star = document.createElement('div');
+                star.classList.add('star');
+                const size = Math.random() * 3 + 'px';
+                star.style.width = size;
+                star.style.height = size;
+                star.style.left = Math.random() * 100 + 'vw';
+                star.style.top = Math.random() * 100 + 'vh';
+                star.style.setProperty('--duration', (Math.random() * 3 + 2) + 's');
+                document.body.appendChild(star);
+            }
+        }
+
+        setInterval(() => {
+            if (!isSuccess || Math.random() > 0.7) createHeart();
+        }, 600);
+
+        window.addEventListener('load', handleConfig);
+    </script>
+</body>
+</html>
