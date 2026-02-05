@@ -14,7 +14,6 @@
             --btn-pink-hover: #ff758f;
         }
 
-        /* Screen 2 Theme (Night Romance) */
         body.theme-success {
             --bg-gradient: radial-gradient(circle, #2d0b36 0%, #000000 100%);
             --card-bg: rgba(45, 11, 54, 0.6);
@@ -43,14 +42,20 @@
             backdrop-filter: blur(15px);
             z-index: 10;
             border: 2px solid rgba(255, 255, 255, 0.3);
+            width: 500px;
             max-width: 90%;
+            height: 400px; /* Fixed height to provide room for movement inside */
             position: relative;
             transition: all 1s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
         }
 
         h1 {
             color: var(--accent-color);
-            font-size: 2.5rem;
+            font-size: 2.2rem;
             margin-bottom: 2rem;
             text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
         }
@@ -60,7 +65,7 @@
             font-size: 1.2rem;
             font-weight: bold;
             border-radius: 9999px;
-            transition: all 0.2s ease;
+            transition: transform 0.2s ease;
             cursor: pointer;
             border: none;
             outline: none;
@@ -79,28 +84,14 @@
         #noBtn {
             position: relative;
             z-index: 100;
-            transition: left 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), 
-                        top 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275),
-                        transform 0.2s ease;
+            /* Smoother transition for moving inside the box */
+            transition: left 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), 
+                        top 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
 
-        /* Class added once the button starts dodging */
         #noBtn.dodging {
-            position: fixed;
+            position: absolute;
             margin: 0;
-        }
-
-        /* We use a placeholder to prevent the Yes button from shifting */
-        .btn-placeholder {
-            width: 154px; /* Width of the No button to maintain layout */
-            height: 48px;
-            display: none;
-        }
-
-        #noBtn.dodging + .btn-placeholder {
-            display: inline-block;
-            visibility: hidden;
-            pointer-events: none;
         }
 
         .heart {
@@ -132,8 +123,17 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: 40px; 
-            min-height: 80px;
+            gap: 20px;
+            width: 100%;
+            height: 60px;
+            position: relative;
+        }
+
+        /* This ensures the Yes button stays centered when No starts moving */
+        .controls-inner {
+            display: flex;
+            gap: 20px;
+            align-items: center;
         }
 
         .star {
@@ -153,13 +153,14 @@
 <body id="body">
 
     <div class="container" id="mainCard">
-        <div id="proposalContent">
+        <div id="proposalContent" class="w-full">
             <div id="heartIcon" class="mb-4 text-6xl">💝</div>
             <h1 id="mainTitle">Will you be my Valentine?</h1>
-            <div class="controls">
-                <button id="yesBtn" class="btn">Yes</button>
-                <button id="noBtn" class="btn">No</button>
-                <div class="btn-placeholder"></div>
+            <div class="controls" id="controlsBox">
+                <div class="controls-inner">
+                    <button id="yesBtn" class="btn">Yes</button>
+                    <button id="noBtn" class="btn">No</button>
+                </div>
             </div>
         </div>
 
@@ -167,7 +168,6 @@
             <div class="text-7xl mb-4">🥰🎉</div>
             <h1 class="text-3xl font-bold text-white">I knew you'd say Yes!</h1>
             <p class="text-pink-200 mt-2 text-xl">You've made me the happiest person ever.</p>
-            
             <button onclick="location.reload()" class="mt-8 text-sm text-pink-300 underline opacity-50">Start Over</button>
         </div>
     </div>
@@ -175,6 +175,7 @@
     <script>
         const noBtn = document.getElementById('noBtn');
         const yesBtn = document.getElementById('yesBtn');
+        const mainCard = document.getElementById('mainCard');
         const proposalContent = document.getElementById('proposalContent');
         const successMessage = document.getElementById('successMessage');
         const mainTitle = document.getElementById('mainTitle');
@@ -191,55 +192,45 @@
             }
         }
 
-        function moveButton(e) {
+        function moveButton() {
             if (isSuccess) return;
 
+            const cardRect = mainCard.getBoundingClientRect();
+            const btnRect = noBtn.getBoundingClientRect();
+
             if (!hasStartedDodging) {
-                const rect = noBtn.getBoundingClientRect();
-                // Set the current fixed position before switching classes
-                noBtn.style.left = `${rect.left}px`;
-                noBtn.style.top = `${rect.top}px`;
+                // Calculate current position relative to the card
+                const relativeLeft = btnRect.left - cardRect.left;
+                const relativeTop = btnRect.top - cardRect.top;
+
+                // Lock the position relative to the container
+                noBtn.style.left = `${relativeLeft}px`;
+                noBtn.style.top = `${relativeTop}px`;
                 noBtn.classList.add('dodging');
                 hasStartedDodging = true;
                 
-                // Jump to a new random location immediately after fixing position
-                setTimeout(() => performJump(), 10);
+                // Jump after a tiny frame to allow CSS switch
+                setTimeout(performJump, 10);
             } else {
                 performJump();
             }
         }
 
         function performJump() {
-            const btnRect = noBtn.getBoundingClientRect();
-            const btnWidth = btnRect.width;
-            const btnHeight = btnRect.height;
-            const threshold = 120;
+            const cardRect = mainCard.getBoundingClientRect();
+            const btnWidth = noBtn.offsetWidth;
+            const btnHeight = noBtn.offsetHeight;
             
-            const screenW = window.innerWidth;
-            const screenH = window.innerHeight;
+            // Define safe boundaries within the white box (padding taken into account)
+            const padding = 20;
+            const maxX = cardRect.width - btnWidth - padding;
+            const maxY = cardRect.height - btnHeight - padding;
+            const minX = padding;
+            const minY = padding;
 
-            const currX = btnRect.left;
-            const currY = btnRect.top;
-
-            let targetX, targetY;
-
-            // Horizontal logic - avoid edges
-            if (currX < threshold) {
-                targetX = (screenW * 0.5) + Math.random() * (screenW * 0.4);
-            } else if (currX > (screenW - btnWidth - threshold)) {
-                targetX = (screenW * 0.1) + Math.random() * (screenW * 0.4);
-            } else {
-                targetX = 50 + Math.random() * (screenW - btnWidth - 100);
-            }
-
-            // Vertical logic - avoid edges
-            if (currY < threshold) {
-                targetY = (screenH * 0.5) + Math.random() * (screenH * 0.4);
-            } else if (currY > (screenH - btnHeight - threshold)) {
-                targetY = (screenH * 0.1) + Math.random() * (screenH * 0.4);
-            } else {
-                targetY = 50 + Math.random() * (screenH - btnHeight - 100);
-            }
+            // Generate random coordinates inside the container
+            const targetX = minX + Math.random() * (maxX - minX);
+            const targetY = minY + Math.random() * (maxY - minY);
 
             noBtn.style.left = `${targetX}px`;
             noBtn.style.top = `${targetY}px`;
@@ -273,10 +264,6 @@
             heart.style.left = Math.random() * 100 + 'vw';
             heart.style.fontSize = (Math.random() * 20 + 10) + 'px';
             heart.style.animationDuration = (Math.random() * 3 + 3) + 's';
-            if (isSuccess) {
-                heart.style.color = '#ff85a1';
-                heart.style.filter = 'drop-shadow(0 0 5px #ff4d6d)';
-            }
             document.body.appendChild(heart);
             setTimeout(() => heart.remove(), 6000);
         }
