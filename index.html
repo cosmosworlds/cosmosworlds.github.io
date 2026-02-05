@@ -3,7 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Will You Be My Valentine?</title>
+    <title>Will You Be My Valentine? | Personalized Romantic Proposal</title>
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="A beautiful, interactive, and personalized way to ask someone to be your Valentine. Send a unique link to your special someone with a romantic surprise!">
+    <meta name="keywords" content="Valentine's Day, Valentine Proposal, Be My Valentine, Romantic Surprise, Personalized Valentine, Love Letter">
+    <meta name="author" content="Valentine Proposal Maker">
+    <meta name="robots" content="index, follow">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://your-github-username.github.io/valentine-proposal/">
+    <meta property="og:title" content="Will You Be My Valentine? 💝">
+    <meta property="og:description" content="Someone has a special romantic question for you! Click to see the surprise.">
+    <meta property="og:image" content="https://fonts.gstatic.com/s/i/short-term/release/googlestars/heart/default/24px.svg">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://your-github-username.github.io/valentine-proposal/">
+    <meta property="twitter:title" content="Will You Be My Valentine? 💝">
+    <meta property="twitter:description" content="Someone has a special romantic question for you! Click to see the surprise.">
+
+    <!-- Structured Data for Google (JSON-LD) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Valentine's Proposal Maker",
+      "description": "An interactive digital proposal for Valentine's Day.",
+      "applicationCategory": "EntertainmentApplication",
+      "operatingSystem": "All",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      }
+    }
+    </script>
+
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         :root {
@@ -44,7 +81,7 @@
             border: 2px solid rgba(255, 255, 255, 0.3);
             width: 500px;
             max-width: 90%;
-            height: 400px; /* Fixed height to provide room for movement inside */
+            height: 400px;
             position: relative;
             transition: background 1s ease, color 1s ease;
             display: flex;
@@ -84,7 +121,6 @@
         #noBtn {
             position: relative;
             z-index: 100;
-            /* Smoother transition for moving inside the box */
             transition: left 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), 
                         top 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
@@ -129,7 +165,6 @@
             position: relative;
         }
 
-        /* This ensures the Yes button stays centered when No starts moving */
         .controls-inner {
             display: flex;
             gap: 20px;
@@ -188,7 +223,10 @@
             const urlParams = new URLSearchParams(window.location.search);
             const name = urlParams.get('n');
             if (name && name.trim() !== "") {
-                mainTitle.textContent = `Hey ${name.trim()}, will you be my Valentine?`;
+                const cleanName = name.trim();
+                mainTitle.textContent = `Hey ${cleanName}, will you be my Valentine?`;
+                // Dynamic Title SEO
+                document.title = `Special Message for ${cleanName} | Valentine's 2026`;
             }
         }
 
@@ -199,17 +237,14 @@
             const btnRect = noBtn.getBoundingClientRect();
 
             if (!hasStartedDodging) {
-                // Calculate current position relative to the container (mainCard)
                 const relativeLeft = btnRect.left - cardRect.left;
                 const relativeTop = btnRect.top - cardRect.top;
 
-                // Move button to be absolute within mainCard
                 noBtn.style.left = `${relativeLeft}px`;
                 noBtn.style.top = `${relativeTop}px`;
                 noBtn.classList.add('dodging');
                 hasStartedDodging = true;
                 
-                // Trigger the actual jump
                 setTimeout(performJump, 10);
             } else {
                 performJump();
@@ -221,15 +256,12 @@
             const btnWidth = noBtn.offsetWidth;
             const btnHeight = noBtn.offsetHeight;
             
-            // Define safe boundaries within mainCard only
-            // Padding ensures it doesn't overlap with the border or edge of the card
             const padding = 20;
             const maxX = cardRect.width - btnWidth - padding;
             const maxY = cardRect.height - btnHeight - padding;
             const minX = padding;
             const minY = padding;
 
-            // Generate coordinates relative to mainCard
             const targetX = minX + Math.random() * (maxX - minX);
             const targetY = minY + Math.random() * (maxY - minY);
 
