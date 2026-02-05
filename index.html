@@ -46,7 +46,7 @@
             max-width: 90%;
             height: 400px; /* Fixed height to provide room for movement inside */
             position: relative;
-            transition: all 1s ease;
+            transition: background 1s ease, color 1s ease;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -199,17 +199,17 @@
             const btnRect = noBtn.getBoundingClientRect();
 
             if (!hasStartedDodging) {
-                // Calculate current position relative to the card
+                // Calculate current position relative to the container (mainCard)
                 const relativeLeft = btnRect.left - cardRect.left;
                 const relativeTop = btnRect.top - cardRect.top;
 
-                // Lock the position relative to the container
+                // Move button to be absolute within mainCard
                 noBtn.style.left = `${relativeLeft}px`;
                 noBtn.style.top = `${relativeTop}px`;
                 noBtn.classList.add('dodging');
                 hasStartedDodging = true;
                 
-                // Jump after a tiny frame to allow CSS switch
+                // Trigger the actual jump
                 setTimeout(performJump, 10);
             } else {
                 performJump();
@@ -221,14 +221,15 @@
             const btnWidth = noBtn.offsetWidth;
             const btnHeight = noBtn.offsetHeight;
             
-            // Define safe boundaries within the white box (padding taken into account)
+            // Define safe boundaries within mainCard only
+            // Padding ensures it doesn't overlap with the border or edge of the card
             const padding = 20;
             const maxX = cardRect.width - btnWidth - padding;
             const maxY = cardRect.height - btnHeight - padding;
             const minX = padding;
             const minY = padding;
 
-            // Generate random coordinates inside the container
+            // Generate coordinates relative to mainCard
             const targetX = minX + Math.random() * (maxX - minX);
             const targetY = minY + Math.random() * (maxY - minY);
 
